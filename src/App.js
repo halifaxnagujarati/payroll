@@ -5,6 +5,7 @@ import Home from './home';
 import Login from './login';
 import Coordinator from './coordinator';
 import CoordinatorHome from './coordinator';
+import Admin from './admin';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 function App() {
@@ -27,7 +28,9 @@ function App() {
                     <Route path="/coordinator-home">
                         <CoordinatorHome />
                     </Route>
-
+                    <Route path="/admin">
+                        <Admin />
+                    </Route>
                 </Switch>
             </div>
         </BrowserRouter>
