@@ -8,83 +8,70 @@ const Home = ({ firstName }) => {
   const formatDateRange = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
+
     const startFormatted = start.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     const endFormatted = end.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    
+
     return `${startFormatted} - ${endFormatted}`;
   }
 
-  var RH = 0;
-  var TL = 0;
-  var TLNS = 0;
-  var NA = 0;
-  var NS = 0;
-  var SH = 0;
-  var SNS = 0;
-  var VHRH = 0;
-  var VHNS = 0;
+  
+const calculateTotalHoursByType = (tableData) => {
+    let totals = {
+        RH: 0, // Regular Hours, Training Hours, On Call Regular
+        TL: 0, // Team Lead Regular, Team Lead Night Awake
+        TLNS: 0, // Team Lead Sleep
+        NA: 0, // Night Awake Hours
+        NS: 0, // Night Sleep Hours
+        SH: 0, // Sick Hours
+        SNS: 0, // Sick Night Sleep Hours
+        VHRH: 0, // Vacation Regular Hours
+        VHNS: 0, // Vacation Night Sleep Hours
+    };
 
-  const totalHourByHourType = (tableData, hourType) => {
     tableData.forEach((row) => {
-      row.entries.forEach((entry) => {
-        if (entry.hourType === 'Regular Hours' || entry.hourType === 'Training Hours' || entry.hourType === 'On Call Regular') {
-          const hour = calculateHours(entry.startTime, entry.endTime);
-          if (!isNaN(hour)){
-            RH += hour;
-          }
-        }
-        if (entry.hourType === 'Team Lead Regular' || entry.hourType === 'Team Lead Night Awake') {
-          const hour = calculateHours(entry.startTime, entry.endTime);
-          if (!isNaN(hour)){
-            TL += hour;
-          }
-        }
-        if (entry.hourType === 'Team Lead Sleep') {
-          const hour = calculateHours(entry.startTime, entry.endTime);
-          if (!isNaN(hour)){
-            TLNS += hour;
-          }
-        }
-        if (entry.hourType === 'Night Awake Hours') {
-          const hour = calculateHours(entry.startTime, entry.endTime);
-          if (!isNaN(hour)){
-            NA += hour;
-          }
-        }
-        if (entry.hourType === 'Night Sleep Hours') {
-          const hour = calculateHours(entry.startTime, entry.endTime);
-          if (!isNaN(hour)){
-            NS += hour;
-          }
-        }
-        if (entry.hourType === 'Sick Hours (Regular)' || entry.hourType === 'Sick Hours (Night Awake)') {
-          const hour = calculateHours(entry.startTime, entry.endTime);
-          if (!isNaN(hour)){
-            SH += hour;
-          }
-        }
-        if (entry.hourType === 'Sick Hours (Night Sleep)') {
-          const hour = calculateHours(entry.startTime, entry.endTime);
-          if (!isNaN(hour)){
-            SNS += hour;
-          }
-        }
-        if (entry.hourType === 'Vacation Hours (Regular)') {
-          const hour = calculateHours(entry.startTime, entry.endTime);
-          if (!isNaN(hour)){
-            VHRH += hour;
-          }
-        }
-        if (entry.hourType === 'Vacation Hours (Night Sleep)') {
-          const hour = calculateHours(entry.startTime, entry.endTime);
-          if (!isNaN(hour)){
-            VHNS += hour;
-          }
-        }
-      })
-    })
-  }
+        row.entries.forEach((entry) => {
+            const hour = calculateHours(entry.startTime, entry.endTime);
+            if (!isNaN(hour)){
+                switch (entry.hourType) {
+                    case 'Regular Hours':
+                    case 'Training Hours':
+                    case 'On Call Regular':
+                        totals.RH += hour;
+                        break;
+                    case 'Team Lead Regular':
+                    case 'Team Lead Night Awake':
+                        totals.TL += hour;
+                        break;
+                    case 'Team Lead Sleep':
+                        totals.TLNS += hour;
+                        break;
+                    case 'Night Awake Hours':
+                        totals.NA += hour;
+                        break;
+                    case 'Night Sleep Hours':
+                        totals.NS += hour;
+                        break;
+                    case 'Sick Hours':
+                        totals.SH += hour;
+                        break;
+                    case 'Sick Night Sleep Hours':
+                        totals.SNS += hour;
+                        break;
+                    case 'Vacation Regular Hours':
+                        totals.VHRH += hour;
+                        break;
+                    case 'Vacation Night Sleep Hours':
+                        totals.VHNS += hour;
+                        break;
+                }
+            }
+        });
+    });
+
+    return totals;
+  };
+
 
   const calculateTotalHours = (hourType, tableData) => {
     let totalHours = 0;
@@ -127,7 +114,6 @@ const Home = ({ firstName }) => {
       setTableData(newTableData);
     }
   }, [selectedWeek]);
-  
 
   const calculateHours = (startTime, endTime) => {
     if (!startTime || !endTime) return '';
@@ -137,90 +123,8 @@ const Home = ({ firstName }) => {
     const roundedTotalHour = Math.round(totalHour * 10) / 10; // Round to one decimal place
     return roundedTotalHour;
   };
-  
 
-  const calculateRH = (startTime, endTime, hourType) => {
-    if (!startTime || !endTime) return '';
-    if (hourType === "Regular Hours" || hourType === "Training Hours" || hourType === "On Call Hours"){
-      const start = new Date(`1970-01-01T${startTime}Z`);
-      const end = new Date(`1970-01-01T${endTime}Z`);
-      return (end - start) / 3600000; // in hours
-    }
-  };
-  
-  const calculateTL = (startTime, endTime, hourType) => {
-    if (!startTime || !endTime) return '';
-    if (hourType === "Team Lead Regular"){
-      const start = new Date(`1970-01-01T${startTime}Z`);
-      const end = new Date(`1970-01-01T${endTime}Z`);
-      return (end - start) / 3600000; // in hours
-    }
-  };
 
-  const calculateTLNS = (startTime, endTime, hourType) => {
-    if (!startTime || !endTime) return '';
-    if (hourType === "Team Lead Sleep"){  
-      const start = new Date(`1970-01-01T${startTime}Z`);
-      const end = new Date(`1970-01-01T${endTime}Z`);
-      return (end - start) / 3600000; // in hours
-    }
-  };
-
-  const calculateNA = (startTime, endTime, hourType) => {
-    if (!startTime || !endTime) return '';
-    if (hourType === "Night Awake Hours"){
-      const start = new Date(`1970-01-01T${startTime}Z`);
-      const end = new Date(`1970-01-01T${endTime}Z`);
-      return (end - start) / 3600000; // in hours
-    }
-  };
-
-  const calculateNS = (startTime, endTime, hourType) => {
-    if (!startTime || !endTime) return '';
-    if (hourType === "Night Sleep Hours" || hourType === "On Call Night Sleep") {
-      const start = new Date(`1970-01-01T${startTime}Z`);
-      const end = new Date(`1970-01-01T${endTime}Z`);
-      return (end - start) / 3600000; // in hours
-    }
-  };
-
-  const calculateSH = (startTime, endTime, hourType) => {
-    if (!startTime || !endTime) return '';
-    if (hourType === "Sick Hours (Regular)" || hourType === "Sick Hours (Night Awake)") {
-      const start = new Date(`1970-01-01T${startTime}Z`);
-      const end = new Date(`1970-01-01T${endTime}Z`);
-      return (end - start) / 3600000; // in hours
-    }
-  };
-
-  const calculateSNS = (startTime, endTime, hourType) => {
-    if (!startTime || !endTime) return '';
-    if (hourType === "Sick Hours (Night Sleep)"){
-      const start = new Date(`1970-01-01T${startTime}Z`);
-      const end = new Date(`1970-01-01T${endTime}Z`);
-      return (end - start) / 3600000; // in hours
-    }
-  };
-
-  const calculateVacationRegular = (startTime, endTime, hourType) => {
-    if (!startTime || !endTime) return '';
-    if (hourType === "Vacation Hours (Regular)" || hourType === "Vacation Hours (Night Awake)"){
-      const start = new Date(`1970-01-01T${startTime}Z`);
-      const end = new Date(`1970-01-01T${endTime}Z`);
-      return (end - start) / 3600000; // in hours
-    }
-  };
-
-  const calculateVacationNightSleep = (startTime, endTime, hourType) => {
-    if (!startTime || !endTime) return '';
-    if (hourType === "Vacation Hours (Night Sleep)"){
-      const start = new Date(`1970-01-01T${startTime}Z`);
-      const end = new Date(`1970-01-01T${endTime}Z`);
-      return (end - start) / 3600000; // in hours
-    }
-  };
-
-  
 
   return (
     <div className="home-container">
@@ -237,6 +141,7 @@ const Home = ({ firstName }) => {
             ))}
           </select>
         </div>
+        </section>
 
         {selectedWeek && (
           <table>
@@ -345,30 +250,37 @@ const Home = ({ firstName }) => {
                       }}>
                         Add Line
                       </button>
-                      
+
                     </td>
                   </tr>
-                  
+
                 </>
               ))}
               <h2>Total Hours by Hour Type</h2>
-        {/* <ul>
-        <li>Regular Hours: {calculateRH(startTime, endTime, hourType)} hours</li>
-        <li>Team Lead Regular: {calculateTL(entry.startTime, entry.endTime, entry.hourType)} hours</li>
-        <li>Team Lead Sleep: {calculateTLNS(entry.startTime, entry.endTime, entry.hourType)} hours</li>
-        <li>Night Awake Hours: {calculateNA(entry.startTime, entry.endTime, entry.hourType)} hours</li>
-        <li>Night Sleep Hours: {calculateNS(entry.startTime, entry.endTime, entry.hourType)} hours</li>
-        <li>Sick Hours: {calculateSH(entry.startTime, entry.endTime, entry.hourType)} hours</li>
-        <li>Sick Night Sleep Hours: {calculateSNS(entry.startTime, entry.endTime, entry.hourType)} hours</li>
-        <li>Vacation Hours: {calculateVacationRegular(entry.startTime, entry.endTime, entry.hourType)} hours</li>
-        <li>Vacation Night Sleep Hours: {calculateVacationNightSleep(entry.startTime, entry.endTime, entry.hourType)} hours</li>
-        </ul> */}
-            </tbody>
-          </table>
-        )}
-      </section>
-    </div>
-  );
-};
-
+)        
+      <button
+        onClick={() => {
+          const calculatedTotals = calculateTotalHoursByType(tableData);
+          
+          return (
+            <ul>
+              <li>Regular Hours: {totals.RH} hours</li>
+              <li>Team Lead Regular: {totals.TL} hours</li>
+              <li>Team Lead Sleep: {totals.TLNS} hours</li>
+              <li>Night Awake Hours: {totals.NA} hours</li>
+              <li>Night Sleep Hours: {totals.NS} hours</li>
+              <li>Sick Hours: {totals.SH} hours</li>
+              <li>Sick Night Sleep Hours: {totals.SNS} hours</li>
+              <li>Vacation Hours: {totals.VHRH} hours</li>
+              <li>Vacation Night Sleep Hours: {totals.VHNS} hours</li>
+            </ul>
+          );
+        }}
+      >
+        Calculate Hours
+      </button>
+      </tbody>
+      </table>
+  )}</div>
+     ) }
 export default Home;
