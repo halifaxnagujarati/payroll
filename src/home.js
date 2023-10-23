@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import * as React from 'react';
 import Button from '@mui/material/Button';
+import logo from './img/logo.jpg';
+
 
 const Home = ({ firstName }) => {
   const [selectedWeek, setSelectedWeek] = useState(null);
@@ -103,7 +105,9 @@ const Home = ({ firstName }) => {
   }, [selectedWeek]);
 
   return (
+    
     <div className="home-container">
+      <img src={logo} alt="Logo" />
       <h1>Hello, {firstName}</h1>
 
 <section>
