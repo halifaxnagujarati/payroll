@@ -162,6 +162,40 @@ app.delete('/api/deleteMember/:id', async (req, res) => {
   }
 });
 
+//delete staff endpoint
+app.delete('/api/deleteStaff/:id', async (req, res) => {
+  try {
+    const empID = req.params.id;
+
+    // Delete the member with the specified ID from the 'users' table
+    pool.execute('DELETE FROM users WHERE empID = ?', [empID], (err, results) => {
+      if (err) {
+        console.error('Error deleting staff:', err.message);
+        res.status(500).json({ error: 'Error deleting staff' });
+        return;
+      }
+
+      // Check if any rows were affected (if no rows were deleted, empID might be invalid)
+      if (results.affectedRows === 0) {
+        console.error('No staff member found with empID:', empID);
+        res.status(404).json({ error: 'Staff member not found' });
+        return;
+      }
+      if (!empID || isNaN(empID)) {
+        res.status(400).json({ error: 'Invalid empID' });
+        return;
+      }
+
+      // Success response
+      console.log('Staff deleted successfully');
+      res.status(200).json({ message: 'Staff deleted successfully' });
+    });
+  } catch (error) {
+    console.error('Error deleting staff:', error.message);
+    res.status(500).json({ error: 'Error deleting staff' });
+  }
+});
+
 app.post('/api/submitTimesheet', (req, res) =>{
   console.log('Received data:', req.body);
   
@@ -181,6 +215,25 @@ app.post('/api/submitTimesheet', (req, res) =>{
       res.status(200).json({message:'Timesheet submitted successfully'});
     }
   )
+});
+
+//fetch all staff endpoint
+app.get('/api/allStaff', async (req, res) => {
+  try {
+    // Retrieve all staff members from the 'users' table
+    pool.query('SELECT firstName, lastName, location FROM users', (err, results) => {
+      if (err) {
+        console.error('Error fetching staff members:', err.message);
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      // Send the list of staff members as JSON
+      res.status(200).json(results);
+    });
+  } catch (error) {
+    console.error('Error fetching staff members:', error.message);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Server listening on port 3001 or the environment's specified port
