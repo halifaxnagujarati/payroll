@@ -92,6 +92,97 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Add Member endpoint
+app.post('/api/addMember', async (req, res) => {
+  try {
+    const { memberName } = req.body;
+
+    // Insert the member's name into the 'members' table
+    pool.execute(
+      'INSERT INTO members (memberNames) VALUES (?)',
+      [memberName],
+      (err, results) => {
+        if (err) {
+          console.error('Error adding member:', err.message);
+          res.status(500).json({ error: err.message });
+          return;
+        }
+
+        // Success response
+        console.log('Member added successfully');
+        res.status(200).json({ message: 'Member added successfully' });
+      }
+    );
+  } catch (error) {
+    console.error('Error adding member:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+//fetch all members endpoint
+app.get('/api/allMembers', async (req, res) => {
+  try {
+    // Retrieve all members from the 'members' table
+    pool.query('SELECT * FROM members', (err, results) => {
+      if (err) {
+        console.error('Error fetching members:', err.message);
+        res.status(500).json({ error: err.message });
+        return;
+      }
+
+      // Send the list of members as JSON
+      res.status(200).json(results);
+    });
+  } catch (error) {
+    console.error('Error fetching members:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+//delete member endpoint
+app.delete('/api/deleteMember/:id', async (req, res) => {
+  try {
+    const memberID = req.params.id;
+
+    // Delete the member with the specified ID from the 'members' table
+    pool.execute('DELETE FROM members WHERE memberID = ?', [memberID], (err, results) => {
+      if (err) {
+        console.error('Error deleting member:', err.message);
+        res.status(500).json({ error: err.message });
+        return;
+      }
+
+      // Success response
+      console.log('Member deleted successfully');
+      res.status(200).json({ message: 'Member deleted successfully' });
+    });
+  } catch (error) {
+    console.error('Error deleting member:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/submitTimesheet', (req, res) =>{
+  console.log('Received data:', req.body);
+  
+  const {week, dayWorked, startTime, endTime, totalHours, hourType, memberSupported, regular, teamLeadRegular, teamLeadSleep, nightAwake, nightSleep, sick, sickNightSleep, vacation, vacationNightSleep} = 
+
+  pool.execute(
+    'INSERT INTO timesheets(week, dayWorked, startTime, endTime, totalHours, hourType, memberSupported, regular, teamLeadRegular, teamLeadSleep, nightAwake, nightSleep, sick, sickNightSleep, vacation, vacationNightSleep) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+    [week, dayWorked, startTime, endTime, totalHours, hourType, memberSupported, regular, teamLeadRegular, teamLeadSleep, nightAwake, nightSleep, sick, sickNightSleep, vacation, vacationNightSleep],
+    (err, results) => {
+      if (err) {
+        console.error('Error entrying timesheet data:', err.message);
+        res.status(500).json({error:err.message});
+        return;
+      }
+
+      console.log('Timesheet submitted successfully');
+      res.status(200).json({message:'Timesheet submitted successfully'});
+    }
+  )
+});
+
 // Server listening on port 3001 or the environment's specified port
 const port = process.env.PORT || 3001;
 app.listen(port, () => {

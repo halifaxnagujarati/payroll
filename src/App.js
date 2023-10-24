@@ -26,7 +26,7 @@ function App() {
           <Route path="/coordinator">
             <Coordinator />
           </Route>
-          <Route path="/coordinator-home">
+          <Route path="/coordinatorhome">
             <CoordinatorHome />
           </Route>
           <Route path="/admin">

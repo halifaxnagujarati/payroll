@@ -10,6 +10,8 @@ const Home = ({ firstName }) => {
   const [totals, setTotals] = useState({
     RH: 0, TL: 0, TLNS: 0, NA: 0, NS: 0, SH: 0, SNS: 0, VHRH: 0, VHNH: 0
   });
+  const [members, setMembers] = useState([]);
+  const [memberName, setMemberName] = useState('');
 
   useEffect(() => {
     calculateTotalHoursByType();
@@ -87,6 +89,26 @@ const Home = ({ firstName }) => {
     currentDate.setDate(currentDate.getDate() + 7);
   }
 
+   // Fetch members when the component mounts
+   useEffect(() => {
+    fetchMembers();
+  }, []);
+
+  // Function to fetch members from the server
+  const fetchMembers = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/allMembers');
+      if (response.ok) {
+        const data = await response.json();
+        setMembers(data); // Set the retrieved members in the state
+      } else {
+        console.error('Error fetching members');
+      }
+    } catch (error) {
+      console.error('Error fetching members:', error.message);
+    }
+  };
+
   useEffect(() => {
     if (selectedWeek) {
       const startDate = new Date(selectedWeek.split(' - ')[0]); // Parse the start date from the selectedWeek
@@ -104,6 +126,47 @@ const Home = ({ firstName }) => {
     }
   }, [selectedWeek]);
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const timesheetData = {
+      week: selectedWeek,
+      // dayWorked: dayWorked,
+      // startTime: startTime,
+      // endTime: endTime,
+      // totalHours: totalHours,
+      // hourType: hourType,
+      // memberSupported: memberSupported,
+      regular: totals.RH,
+      teamLeadRegular: totals.TL,
+      teamLeadSleep: totals.TLNS,
+      nightAwake: totals.NA,
+      nightSleep: totals.NS,
+      sick: totals.SH,
+      sickNightSleep: totals.SNS,
+      vacation: totals.VHRH,
+      vacationNightSleep: totals.VHNH,
+    };
+    
+    try {
+      const response = await fetch('http://localhost:3001/api/submitTimesheet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(timesheetData), // Convert the object to JSON
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message); // Display a success message
+      } else {
+        alert('Error submitting timesheet. Please try again.'); // Display an error message
+      }
+    } catch (error) {
+      console.error('Error submitting timesheet:', error.message);
+      alert('Error submitting timesheet. Please try again.'); // Handle any network or other errors
+    }
+  };
+
   return (
     
     <div className="home-container">
@@ -115,7 +178,7 @@ const Home = ({ firstName }) => {
   <div>
     <label>Week:</label>
     <select onChange={(e) => setSelectedWeek(e.target.value)}>
-      <option value="">Select a week</option>
+      <option value="week">Select a week</option>
       {weeks.map((week, index) => (
         <option key={index} value={week}>{week}</option>
       ))}
@@ -193,19 +256,23 @@ const Home = ({ firstName }) => {
                 </td>
                 {/* ... other fields ... */}
                 <td>
-                  <select value={entry.memberSupported} onChange={(e) => {
-                    const updatedTableData = [...tableData];
-                    updatedTableData[rowIndex].entries[entryIndex].memberSupported = e.target.value;
-                    setTableData(updatedTableData);
-                  }}>
-
-                    {/* ... member supported options ... */}
-                  <option value="Select">Select Member</option>
-                  <option value="Yash">Yash</option>
-                  <option value="Somani">Somani</option>
-                  <option value="Isa">Isa</option>
-                  </select>
-                </td>
+        <select
+          value={entry.memberSupported}
+          onChange={(e) => {
+            const updatedTableData = [...tableData];
+            updatedTableData[rowIndex].entries[entryIndex].memberSupported = e.target.value;
+            setTableData(updatedTableData);
+          }}
+        >
+          <option value="">Select Member</option>
+          {/* Map through the members to populate the dropdown */}
+          {members.map((members) => (
+            <option key={members.memberID} value={members.memberNames}>
+              {members.memberNames}
+            </option>
+          ))}
+        </select>
+      </td>
                 <td>
                   <Button variant="outlined"  color="error" onClick={() => {
                     const updatedTableData = [...tableData];
@@ -249,9 +316,14 @@ const Home = ({ firstName }) => {
               <p>Vacation Hours: {totals.VHRH} hours</p>
               <p>Vacation Night Sleep Hours: {totals.VHNH} hours</p>
               </tbody>
+              <div style={{marginTop: '20px'}}>
+                <button className="button" type="submit">Submit Timesheet</button>
+            </div>
               </table>
+              
   )}
     </div>
+    
   );
 }
 
