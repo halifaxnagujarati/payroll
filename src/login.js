@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom/cjs/react-router-dom';
 import { Redirect } from 'react-router-dom/cjs/react-router-dom.min';
 
 function Login() {
-    const [formData, setFormData] = useState({ email: '', password: '' });
+    const [formData, setFormData] = useState({ username: '', password: '' });
     const [authenticated, setAuthenticated] = useState(false);
 
     const handleChange = (e) => {
@@ -11,41 +11,54 @@ function Login() {
         setFormData({ ...formData, [name]: value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         // Replace this with your actual authentication logic.
-        if (formData.email === 'user@example.com' && formData.password === 'password') {
-            setAuthenticated(true);
-        } else {
-            alert('Invalid email or password. Please try again.');
+        try {
+            const response = await fetch('http://localhost:3001/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const { token } = data; // Assuming the server sends a JWT token
+                localStorage.setItem('token', token); // Store the token in local storage
+                setAuthenticated(true); // Set the authenticated state to true
+            } else {
+                alert('Invalid username or password. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error logging in:', error.message);
+            alert('Login failed');
         }
     };
 
     const history = useHistory();
+    if (authenticated) {
+        return <Redirect to="/home" />;
+    }
 
     const handleButtonClick = () => {
         history.push('/coordinator'); 
     };
 
-    if (authenticated) {
-        return <Redirect to="/home" />;
-    }
-
     return (
         <div>
             <h1>Login</h1>
             <form onSubmit={handleSubmit}>
-                <label htmlFor="email">Email Address:</label>
+                <label htmlFor="username">Username: </label>
                 <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
+                    type="text"
+                    id="username"
+                    name="username"
+                    value={formData.username}
                     onChange={handleChange}
                     required
                 /><br />
 
-                <label htmlFor="password">Password:</label>
+                <label htmlFor="password">Password: </label>
                 <input
                     type="password"
                     id="password"
@@ -56,9 +69,9 @@ function Login() {
                 /><br />
 
                 <button type="submit">Login</button>
-                <button type="button" onClick={handleButtonClick}>
+                <button type="button" onClick={() => history.push('/coordinator')}>
                     Coordinator Login?
-                    </button>
+                </button>
             </form>
         </div>
     );

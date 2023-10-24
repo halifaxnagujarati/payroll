@@ -30,18 +30,19 @@ function Register() {
     // Validation logic
     if (formData.location === '') {
       alert('Please select a location.');
+      return;
     } else {
       try {
         // Fetch API to post the registration data
-        const response = await fetch('http://localhost:5000/api/register', {
+        const response = await fetch('http://localhost:3001/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
         });
 
         // Error handling and success handling
+        const data = await response.json();
         if (response.ok) {
-          const data = await response.json();
           alert(data.message);
           history.push('/login'); // ensure you have a "/login" route in your Router
         } else {
